@@ -579,14 +579,29 @@ function toggleRemote() {
     }
 }
 
-// Keyboard Controls for Volume (Enhancement: Add Visual Feedback)
+// Event listener for keydown events
 document.addEventListener('keydown', (event) => {
-    if (event.key === 'ArrowUp') {
-        volumeUp();
-    } else if (event.key === 'ArrowDown') {
-        volumeDown();
+    switch(event.key) {
+        case 'ArrowUp':
+            volumeUp();
+            updateVolumeDisplay();
+            break;
+        case 'ArrowDown':
+            volumeDown();
+            updateVolumeDisplay();
+            break;
+        case 'ArrowLeft':
+            changeChannel(currentChannelIndex - 1);
+            updateChannelDisplay();
+            break;
+        case 'ArrowRight':
+            changeChannel(currentChannelIndex + 1);
+            updateChannelDisplay();
+            break;
+        default:
+            // Ignore other keys
+            break;
     }
-});
 
 // Initialize Draggable Remote Control and Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
