@@ -66,7 +66,7 @@ function onPlayerError(event) {
 async function loadLiveVideos(query = '') {
     try {
         showLoadingIndicator();
-        const apiKey = 'AIzaSyDvRlA7YTz9DPZD6sENoXLrqMKxP3UYuTs'; // Replace with your actual API key
+        const apiKey = 'AIzaSyDOxYDTKmc_-SHUUcf9pbSirhgzou3SZb8'; // Replace with your actual API key
         const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&eventType=live&type=video&regionCode=US&maxResults=50&q=${encodeURIComponent(query)}&relevanceLanguage=en&key=${apiKey}`);
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
