@@ -176,6 +176,7 @@ body {
     font-family: "DM Sans", sans-serif;
     font-weight: 900;
     font-style: normal;
+  font-size: 24px;
 }
 
 /* Show TV Guide Panel */
@@ -219,9 +220,11 @@ body {
 .channel-info {
     display: flex;
     align-items: left;
-    gap: 10px;
-    height:auto;
-
+    
+    height:100%;
+  width: 20%;
+    flex-direction: column;  
+ border-right: 2px solid white;
   
 }
 
@@ -235,20 +238,20 @@ body {
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    font-size: 16px;
+    font-size: 30px;
     color: #FFD700;
     
 }
 
 /* Channel Name Box */
 .channel-name-list {
-    height:100%;
+    
     padding: 8px 12px;
-   
+       font-size: 20px;
     font-weight: 600;
     color: #FFD700;
     flex: 1; /* Take up remaining space */
-  border-right: 2px solid white;
+ 
  
 }
 
