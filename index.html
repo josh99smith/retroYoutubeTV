@@ -9,8 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <!-- Import Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,600&family=Kaushan+Script&family=Noto+Sans:ital,wght@0,900;1,900&family=Vina+Sans&display=swap" rel="stylesheet">
     <!-- Link to External CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Static Overlay for Channel Switching Effects -->
@@ -24,27 +25,8 @@
         <span class="volume-label">Volume</span>
         <div class="volume-bars">
             <!-- 20 Volume Bars -->
-            <!-- You can generate these dynamically using JavaScript if preferred -->
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
-            <div class="volume-bar"></div>
+            <!-- These can be generated dynamically if preferred -->
+            <!-- Using JavaScript to generate for brevity -->
         </div>
         <div class="volume-display">50%</div>
     </div>
@@ -61,24 +43,25 @@
         <div class="drag-handle" id="drag-handle" aria-label="Drag Handle">
             &#x2630; <!-- Hamburger icon -->
         </div>
-          <div class="volume-controls">
- 
-         <button class="remote-button" id="volume-down" aria-label="Volume Down">Volume<br> -</button>
-                  <button class="remote-button" id="volume-up" aria-label="Volume Up">Volume +</button>
-        
-        
-    
+          <button class="remote-button" id="retro-mode" aria-label="Toggle Retro Mode">
+            Retro Mode
+        </button>
+        <div class="volume-controls">
+            <button class="remote-button-v" id="volume-down" aria-label="Volume Down">Volume<br> -</button>
+            <button class="remote-button-v" id="volume-up" aria-label="Volume Up">Volume +</button>
         </div>
-         <button class="remote-button" id="previous-channel" aria-label="Previous Channel">
-            &#x25C0; Previous
+         <button class="remote-button" id="next-channel" aria-label="Next Channel">
+            &#x25B2; <!-- Up Arrow -->
         </button>
-        <button class="remote-button" id="next-channel" aria-label="Next Channel">
-            Next &#x25B6;
+        <button class="remote-button-guide" id="hide-guide" aria-label="Toggle Guide">
+            GUIDE
         </button>
+        <button class="remote-button" id="previous-channel" aria-label="Previous Channel">
+            &#x25BC; <!-- Down Arrow -->
+        </button>
+     
+    
       
-        <button class="remote-button" id="retro-mode" aria-label="Toggle Retro Mode">
-            &#x2699; Retro Mode
-        </button>
     </div>
 
     <!-- Toggle Remote Control Button -->
