@@ -7,8 +7,13 @@ let isStaticPlaying = false; // Flag to track if static is playing
 let playerReady = false; // Flag to track if player is ready
 let volumeOverlayTimer; // Timer for hiding volume overlay
 let videoInfoOverlayTimer; // Timer for hiding video info overlay
-let tvGuidePanelTimer; // Timer for hiding TV guide panel
-let tvGuidePanelVisible = false; // Flag to track TV guide panel visibility
+
+// Auto-Scroll Variables
+let autoScrollInterval;
+let autoScrollPaused = false;
+const scrollPauseDuration = 3000; // 3 seconds pause
+const scrollStep = 1; // Pixels to scroll each step
+const scrollDelay = 20; // Delay in ms between scroll steps
 
 // Load the YouTube IFrame API
 function onYouTubeIframeAPIReady() {
@@ -61,7 +66,7 @@ function onPlayerError(event) {
 async function loadLiveVideos(query = '') {
     try {
         showLoadingIndicator();
-        const apiKey = 'AIzaSyCc2W3HqRcnabPmu31CZPiHMYSxNRZedUI'; // Your provided API key
+        const apiKey = 'AIzaSyDvRlA7YTz9DPZD6sENoXLrqMKxP3UYuTs'; // Replace with your actual API key
         const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&eventType=live&type=video&regionCode=US&maxResults=50&q=${encodeURIComponent(query)}&relevanceLanguage=en&key=${apiKey}`);
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -125,23 +130,6 @@ function changeChannel(index) {
         // Stop Static Sound
         stopStaticSound();
     }, 500);
-}
-
-// Function: Select a Random Channel
-function randomChannel() {
-    if (liveVideos.length === 0) {
-        console.warn('No live videos available to select a random channel.');
-        return;
-    }
-    let newIndex;
-    if (liveVideos.length === 1) {
-        newIndex = 0;
-    } else {
-        do {
-            newIndex = Math.floor(Math.random() * liveVideos.length);
-        } while (newIndex === currentChannelIndex);
-    }
-    changeChannel(newIndex);
 }
 
 // Function: Increase Volume by 5%
@@ -298,10 +286,10 @@ function resetVideoInfoOverlayTimer() {
         clearTimeout(videoInfoOverlayTimer);
     }
 
-    // Set a new timer to hide the overlay after 3 seconds
+    // Set a new timer to hide the overlay after 7 seconds
     videoInfoOverlayTimer = setTimeout(() => {
         hideVideoInfoOverlay();
-    }, 3000); // 3000 milliseconds = 3 seconds
+    }, 7000); // 7000 milliseconds = 7 seconds
 }
 
 // Function: Populate TV Guide Panel with Channel Listings
@@ -315,6 +303,10 @@ function populateTVGuidePanel() {
         channelEntry.setAttribute('data-channel-index', index);
         channelEntry.setAttribute('tabindex', '0'); // Make focusable
 
+        // Container for Channel Number and Name
+        const channelInfo = document.createElement('div');
+        channelInfo.classList.add('channel-info');
+
         // Channel Number
         const channelNumber = document.createElement('span');
         channelNumber.classList.add('channel-number');
@@ -325,15 +317,23 @@ function populateTVGuidePanel() {
         channelName.classList.add('channel-name-list');
         channelName.textContent = video.channel;
 
-        // Current Program (Video Title)
+        // Append channel number and name to channelInfo
+        channelInfo.appendChild(channelNumber);
+        channelInfo.appendChild(channelName);
+
+        // Video Title Box
+        const videoTitleBox = document.createElement('div');
+        videoTitleBox.classList.add('video-title-box');
+
         const currentProgram = document.createElement('span');
         currentProgram.classList.add('current-program');
         currentProgram.textContent = video.title;
 
-        // Append elements to channel entry
-        channelEntry.appendChild(channelNumber);
-        channelEntry.appendChild(channelName);
-        channelEntry.appendChild(currentProgram);
+        videoTitleBox.appendChild(currentProgram);
+
+        // Append channelInfo and videoTitleBox to channelEntry
+        channelEntry.appendChild(channelInfo);
+        channelEntry.appendChild(videoTitleBox);
 
         // Add click event to select channel
         channelEntry.addEventListener('click', () => {
@@ -374,37 +374,26 @@ function updateTVGuideSelection() {
     console.log('TV Guide Panel selection updated.');
 }
 
-// Function: Show TV Guide Panel and Reset Timer
+// Function: Show TV Guide Panel and Start Auto-Scroll
 function showTVGuidePanel() {
     const tvGuidePanel = document.querySelector('.tv-guide-panel');
     tvGuidePanel.classList.add('visible');
     tvGuidePanelVisible = true;
     console.log('TV Guide Panel shown.');
 
-    // Optionally, set a timer to hide the panel after inactivity
-    // Uncomment the following line if you want auto-hide functionality
-    // resetTVGuidePanelTimer();
+    // Start auto-scroll
+    startAutoScroll();
 }
 
-// Function: Hide TV Guide Panel
+// Function: Hide TV Guide Panel and Stop Auto-Scroll
 function hideTVGuidePanel() {
     const tvGuidePanel = document.querySelector('.tv-guide-panel');
     tvGuidePanel.classList.remove('visible');
     tvGuidePanelVisible = false;
     console.log('TV Guide Panel hidden.');
-}
 
-// Function: Reset TV Guide Panel Timer
-function resetTVGuidePanelTimer() {
-    // Clear existing timer if any
-    if (tvGuidePanelTimer) {
-        clearTimeout(tvGuidePanelTimer);
-    }
-
-    // Set a new timer to hide the panel after 10 seconds
-    tvGuidePanelTimer = setTimeout(() => {
-        hideTVGuidePanel();
-    }, 10000); // 10000 milliseconds = 10 seconds
+    // Stop auto-scroll
+    stopAutoScroll();
 }
 
 // Function: Show Loading Indicator
@@ -423,7 +412,6 @@ function hideLoadingIndicator() {
 
 // Function: Show Channel Number Overlay
 function showChannelNumberOverlay(channelNumber) {
-    // Get the overlay element
     const overlay = document.getElementById('channel-number-overlay');
 
     if (overlay) {
@@ -434,17 +422,17 @@ function showChannelNumberOverlay(channelNumber) {
         overlay.classList.add('visible');
         console.log(`Channel number overlay shown: Channel ${channelNumber}`);
 
-        // Hide the overlay after 3 seconds
+        // Hide the overlay after 7 seconds
         setTimeout(() => {
             overlay.classList.remove('visible');
             console.log('Channel number overlay hidden.');
-        }, 5000); // 3000 milliseconds = 3 seconds
+        }, 7000); // 7000 milliseconds = 7 seconds
     } else {
         console.error('Channel Number Overlay element not found.');
     }
 }
 
-// Function: Play Button Sound (Enhancement)
+// Function: Play Button Sound
 function playButtonSound() {
     const buttonSound = document.getElementById('button-sound');
     if (buttonSound) {
@@ -467,8 +455,6 @@ function makeElementDraggable(draggableElement, handleElement) {
         draggableElement.style.left = savedPosition.left;
         draggableElement.style.top = savedPosition.top;
         draggableElement.style.position = 'fixed';
-    } else {
-        // Default positioning (already set in CSS)
     }
 
     // Mouse Events
@@ -525,7 +511,7 @@ function makeElementDraggable(draggableElement, handleElement) {
         let newX = initialX + deltaX;
         let newY = initialY + deltaY;
 
-        // Optional: Boundaries to prevent the element from moving off-screen
+        // Boundaries to prevent the element from moving off-screen
         const windowWidth = window.innerWidth;
         const windowHeight = window.innerHeight;
         const elemWidth = draggableElement.offsetWidth;
@@ -579,6 +565,67 @@ function toggleRemote() {
     }
 }
 
+// Function: Start Auto-Scroll
+function startAutoScroll() {
+    const channelList = document.querySelector('.channel-list');
+    if (!channelList) return;
+
+    autoScrollInterval = setInterval(() => {
+        if (autoScrollPaused) return;
+
+        // Check if we've reached the bottom
+        if (channelList.scrollTop + channelList.clientHeight >= channelList.scrollHeight - 1) { // -1 to account for float precision
+            // Pause auto-scroll
+            pauseAutoScroll();
+            return;
+        }
+
+        // Scroll down by scrollStep pixels
+        channelList.scrollTop += scrollStep;
+    }, scrollDelay);
+    console.log('Auto-scroll started.');
+}
+
+// Function: Pause Auto-Scroll
+function pauseAutoScroll() {
+    autoScrollPaused = true;
+    console.log('Auto-scroll paused.');
+
+    setTimeout(() => {
+        autoScrollPaused = false;
+        console.log('Auto-scroll resumed.');
+    }, scrollPauseDuration);
+}
+
+// Function: Stop Auto-Scroll
+function stopAutoScroll() {
+    clearInterval(autoScrollInterval);
+    autoScrollPaused = false;
+    console.log('Auto-scroll stopped.');
+}
+
+// Function: Setup Auto-Scroll Pause on User Interaction
+function setupAutoScrollPauseOnInteraction() {
+    const channelList = document.querySelector('.channel-list');
+    if (!channelList) return;
+
+    // Pause auto-scroll on mouse enter and touch start
+    channelList.addEventListener('mouseenter', pauseAutoScroll);
+    channelList.addEventListener('touchstart', pauseAutoScroll, { passive: false });
+
+    // Resume auto-scroll on mouse leave and touch end
+    channelList.addEventListener('mouseleave', () => {
+        setTimeout(() => {
+            autoScrollPaused = false;
+        }, scrollPauseDuration);
+    });
+    channelList.addEventListener('touchend', () => {
+        setTimeout(() => {
+            autoScrollPaused = false;
+        }, scrollPauseDuration);
+    });
+}
+
 // Keyboard Controls for Volume (Enhancement: Add Visual Feedback)
 document.addEventListener('keydown', (event) => {
     if (event.key === 'ArrowUp') {
@@ -590,6 +637,14 @@ document.addEventListener('keydown', (event) => {
 
 // Initialize Draggable Remote Control and Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
+    // Generate Volume Bars Dynamically
+    const volumeBarsContainer = document.querySelector('.volume-bars');
+    for (let i = 0; i < 20; i++) {
+        const bar = document.createElement('div');
+        bar.classList.add('volume-bar');
+        volumeBarsContainer.appendChild(bar);
+    }
+
     // Load volume from localStorage if available
     const savedVolume = localStorage.getItem('volumeLevel');
     if (savedVolume !== null) {
@@ -607,6 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const volumeDownBtn = document.getElementById('volume-down');
     const retroModeBtn = document.getElementById('retro-mode');
     const toggleRemoteBtn = document.getElementById('toggle-remote');
+    const guideButton = document.getElementById('hide-guide');
 
     if (previousChannelBtn) {
         previousChannelBtn.addEventListener('click', () => {
@@ -650,6 +706,19 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Retro Mode button not found.');
     }
 
+    if (guideButton) {
+        guideButton.addEventListener('click', () => {
+            if (tvGuidePanelVisible) { 
+                hideTVGuidePanel();
+            } else {
+                showTVGuidePanel();
+            }
+            playButtonSound(); // Play sound effect
+        });
+    } else {
+        console.error('Guide button not found.');
+    }
+
     if (toggleRemoteBtn) {
         toggleRemoteBtn.addEventListener('click', () => {
             toggleRemote();
@@ -667,15 +736,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         console.error('Remote Control or Drag Handle not found in the DOM.');
     }
-});
 
-// Function: Play Button Sound (Enhancement)
-function playButtonSound() {
-    const buttonSound = document.getElementById('button-sound');
-    if (buttonSound) {
-        buttonSound.currentTime = 0;
-        buttonSound.play().catch(error => {
-            console.error('Error playing button sound:', error);
-        });
-    }
-}
+    // Setup auto-scroll pause on user interaction
+    setupAutoScrollPauseOnInteraction();
+});
