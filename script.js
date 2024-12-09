@@ -15,6 +15,9 @@ const scrollPauseDuration = 3000; // 3 seconds pause
 const scrollStep = 1; // Pixels to scroll each step
 const scrollDelay = 20; // Delay in ms between scroll steps
 
+// Time Bar Variables
+let timeUpdateInterval;
+
 // Load the YouTube IFrame API
 function onYouTubeIframeAPIReady() {
     player = new YT.Player('youtube-player', {
@@ -66,21 +69,70 @@ function onPlayerError(event) {
 async function loadLiveVideos(query = '') {
     try {
         showLoadingIndicator();
-        const apiKey = 'AIzaSyDOxYDTKmc_-SHUUcf9pbSirhgzou3SZb8'; // Replace with your actual API key
-        const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&eventType=live&type=video&regionCode=US&maxResults=50&q=${encodeURIComponent(query)}&relevanceLanguage=en&key=${apiKey}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        const apiKey = 'AIzaSyCc2W3HqRcnabPmu31CZPiHMYSxNRZedUI'; // Replace with your actual API key
+        const maxResultsPerCall = 50;
+        const desiredTotal = 250;
+        let fetchedTotal = 0;
+        let nextPageToken = '';
+        const uniqueChannels = new Set();
+        const maxApiCalls = 10; // To prevent exceeding quota
+        let apiCalls = 0;
+
+        while (fetchedTotal < desiredTotal && apiCalls < maxApiCalls) {
+            let apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&eventType=live&type=video&regionCode=US&maxResults=${maxResultsPerCall}&relevanceLanguage=en&key=${apiKey}`;
+            if (query) {
+                apiUrl += `&q=${encodeURIComponent(query)}`;
+            }
+            if (nextPageToken) {
+                apiUrl += `&pageToken=${nextPageToken}`;
+            }
+
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+
+            // Process each video item
+            for (const item of data.items) {
+                const videoId = item.id.videoId;
+                const channelName = item.snippet.channelTitle;
+                const videoTitle = item.snippet.title;
+
+                // Check for unique channel
+                if (!uniqueChannels.has(channelName)) {
+                    liveVideos.push({
+                        videoId: videoId,
+                        channel: channelName,
+                        title: videoTitle
+                    });
+                    uniqueChannels.add(channelName);
+                    fetchedTotal++;
+
+                    if (fetchedTotal >= desiredTotal) {
+                        break;
+                    }
+                }
+            }
+
+            console.log(`Fetched ${fetchedTotal} unique live videos so far.`);
+
+            // Prepare for next iteration
+            nextPageToken = data.nextPageToken;
+            if (!nextPageToken) {
+                console.log('No more pages available from YouTube API.');
+                break;
+            }
+
+            apiCalls++;
         }
-        const data = await response.json();
-        liveVideos = data.items.map(item => ({
-            videoId: item.id.videoId,
-            channel: item.snippet.channelTitle,
-            title: item.snippet.title
-        }));
-        console.log(`Fetched ${liveVideos.length} live videos.`);
+
+        console.log(`Total unique live videos fetched: ${liveVideos.length}`);
+
         if (liveVideos.length > 0 && playerReady) {
             changeChannel(0);
             populateTVGuidePanel(); // Populate TV guide after loading videos
+            initializeTimeBar(); // Initialize Time Bar after loading channels
         } else if (liveVideos.length === 0) {
             alert('No live videos found.');
         }
@@ -381,6 +433,12 @@ function showTVGuidePanel() {
     tvGuidePanelVisible = true;
     console.log('TV Guide Panel shown.');
 
+    // Show Time Bar
+    const timeBar = tvGuidePanel.querySelector('.time-bar');
+    if (timeBar) {
+        timeBar.classList.remove('hidden');
+    }
+
     // Start auto-scroll
     startAutoScroll();
 }
@@ -391,6 +449,12 @@ function hideTVGuidePanel() {
     tvGuidePanel.classList.remove('visible');
     tvGuidePanelVisible = false;
     console.log('TV Guide Panel hidden.');
+
+    // Hide Time Bar
+    const timeBar = tvGuidePanel.querySelector('.time-bar');
+    if (timeBar) {
+        timeBar.classList.add('hidden');
+    }
 
     // Stop auto-scroll
     stopAutoScroll();
@@ -416,7 +480,7 @@ function showChannelNumberOverlay(channelNumber) {
 
     if (overlay) {
         // Set the channel number text
-        overlay.textContent = `${channelNumber}`;
+        overlay.textContent = `Channel ${channelNumber}`;
 
         // Make the overlay visible
         overlay.classList.add('visible');
@@ -626,6 +690,111 @@ function setupAutoScrollPauseOnInteraction() {
     });
 }
 
+// Function: Initialize Time Bar
+function initializeTimeBar() {
+    const timeBar = document.querySelector('.time-bar');
+    if (!timeBar) {
+        console.error('Time Bar element not found.');
+        return;
+    }
+
+    // Create a separate element for current time display if it doesn't exist
+    let currentTimeElement = document.querySelector('.current-time');
+    if (!currentTimeElement) {
+        currentTimeElement = document.createElement('div');
+        currentTimeElement.classList.add('current-time');
+        currentTimeElement.setAttribute('aria-label', 'Current Time');
+        timeBar.appendChild(currentTimeElement);
+    }
+
+    // Generate initial time blocks and update current time
+    generateTimeBlocks(currentTimeElement);
+
+    // Update time blocks every second to keep them current
+    timeUpdateInterval = setInterval(() => {
+        generateTimeBlocks(currentTimeElement);
+    }, 1000); // 1000 ms = 1 second
+}
+
+// Function: Generate Time Blocks and Update Current Time
+function generateTimeBlocks(currentTimeElement) {
+    const timeBar = document.querySelector('.time-bar');
+    if (!timeBar) return;
+
+    const currentTime = new Date();
+    const currentHours = currentTime.getHours();
+    const currentMinutes = currentTime.getMinutes();
+    const currentSeconds = currentTime.getSeconds();
+
+    // Format the current time with seconds
+    const ampm = currentHours >= 12 ? 'PM' : 'AM';
+    const displayHours = currentHours % 12 === 0 ? 12 : currentHours % 12;
+    const displayMinutes = currentMinutes < 10 ? `0${currentMinutes}` : currentMinutes;
+    const displaySeconds = currentSeconds < 10 ? `0${currentSeconds}` : currentSeconds;
+    const timeString = `${displayHours}:${displayMinutes}:${displaySeconds} ${ampm}`;
+
+    // Update the current time element
+    currentTimeElement.textContent = timeString;
+
+    // Optional: Style the current time element (You can adjust via CSS)
+    // Ensure styles are handled via CSS to prevent layout shifts
+    // Remove any inline styles added previously
+
+    // Remove existing upcoming time blocks
+    const existingTimeBlocks = timeBar.querySelectorAll('.time-block.upcoming');
+    existingTimeBlocks.forEach(block => {
+        timeBar.removeChild(block);
+    });
+
+    // Define number of upcoming blocks (3 as per requirement)
+    const numberOfBlocks = 3;
+
+    // Calculate the base time rounded to the nearest 30 minutes
+    const baseTime = new Date(currentTime);
+    if (currentMinutes >= 15 && currentMinutes < 45) {
+        baseTime.setMinutes(30);
+    } else if (currentMinutes >= 45) {
+        baseTime.setHours(currentHours + 1);
+        baseTime.setMinutes(0);
+    } else { // currentMinutes < 15
+        baseTime.setMinutes(0);
+    }
+    baseTime.setSeconds(0);
+
+    for (let i = 1; i <= numberOfBlocks; i++) { // Start from 1 to exclude current time
+        const blockTime = new Date(baseTime.getTime() + i * 30 * 60000); // 30-minute intervals
+        const hours = blockTime.getHours();
+        const minutes = blockTime.getMinutes();
+        const ampmBlock = hours >= 12 ? 'PM' : 'AM';
+        const displayHoursBlock = hours % 12 === 0 ? 12 : hours % 12;
+        const displayMinutesBlock = minutes < 10 ? `0${minutes}` : minutes;
+        const timeBlockString = `${displayHoursBlock}:${displayMinutesBlock} ${ampmBlock}`;
+
+        const timeBlock = document.createElement('div');
+        timeBlock.classList.add('time-block', 'upcoming');
+        timeBlock.textContent = timeBlockString;
+
+        // Optional: Style the upcoming time blocks
+        // Ensure styles are handled via CSS to maintain static positioning
+
+        timeBar.appendChild(timeBlock);
+    }
+}
+
+// Function: Show Loading Indicator
+function showLoadingIndicator() {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    loadingIndicator.classList.add('visible');
+    console.log('Loading indicator shown.');
+}
+
+// Function: Hide Loading Indicator
+function hideLoadingIndicator() {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    loadingIndicator.classList.remove('visible');
+    console.log('Loading indicator hidden.');
+}
+
 // Keyboard Controls for Volume (Enhancement: Add Visual Feedback)
 document.addEventListener('keydown', (event) => {
     if (event.key === 'ArrowUp') {
@@ -739,4 +908,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Setup auto-scroll pause on user interaction
     setupAutoScrollPauseOnInteraction();
+
+    // Initialize Time Bar
+    initializeTimeBar();
 });
