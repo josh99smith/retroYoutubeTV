@@ -432,7 +432,7 @@ function showTVGuidePanel() {
     tvGuidePanel.classList.add('visible');
     tvGuidePanelVisible = true;
     console.log('TV Guide Panel shown.');
-
+     startAutoScroll();
     // Show Time Bar
     const timeBar = tvGuidePanel.querySelector('.time-bar');
     if (timeBar) {
@@ -440,7 +440,7 @@ function showTVGuidePanel() {
     }
 
     // Start auto-scroll
-    startAutoScroll();
+    
 }
 
 // Function: Hide TV Guide Panel and Stop Auto-Scroll
@@ -480,7 +480,7 @@ function showChannelNumberOverlay(channelNumber) {
 
     if (overlay) {
         // Set the channel number text
-        overlay.textContent = `${channelNumber}`;
+        overlay.textContent = `Channel ${channelNumber}`;
 
         // Make the overlay visible
         overlay.classList.add('visible');
