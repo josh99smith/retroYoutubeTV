@@ -601,3 +601,62 @@ body {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Existing CSS ... */
+
+/* Time Bar Styles */
+.time-bar {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: rgba(78, 141, 216, 0.9); /* Semi-transparent dark blue */
+    border-bottom: 2px solid #FFD700; /* Gold border */
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  color:white;
+}
+
+.time-block {
+    flex: 1;
+    text-align: center;
+    color: #FFD700;
+    font-size: 18px;
+    
+    margin: 0 5px;
+  
+  width:22%;
+  
+    border-radius: 4px;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.time-block.current {
+    border: 3px inset white;
+    font-weight: bold;
+  color:white;
+
+}
+
+.time-block.upcoming {
+ */
+}
+
+.time-bar.hidden {
+    display: none;
+}
+
+/* Responsive Adjustments for Time Bar */
+@media (max-width: 768px) {
+    .time-bar {
+        padding: 8px 15px;
+    }
+
+    .time-block {
+        font-size: 16px;
+        margin: 0 3px;
+        padding: 4px;
+      
+    }
+}
+
