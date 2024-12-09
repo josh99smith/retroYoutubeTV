@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,600&family=Kaushan+Script&family=Noto+Sans:ital,wght@0,900;1,900&family=Vina+Sans&display=swap" rel="stylesheet">
     <!-- Link to External CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Static Overlay for Channel Switching Effects -->
@@ -43,14 +43,14 @@
         <div class="drag-handle" id="drag-handle" aria-label="Drag Handle">
             &#x2630; <!-- Hamburger icon -->
         </div>
-          <button class="remote-button" id="retro-mode" aria-label="Toggle Retro Mode">
+        <button class="remote-button" id="retro-mode" aria-label="Toggle Retro Mode">
             Retro Mode
         </button>
         <div class="volume-controls">
             <button class="remote-button-v" id="volume-down" aria-label="Volume Down">Volume<br> -</button>
             <button class="remote-button-v" id="volume-up" aria-label="Volume Up">Volume +</button>
         </div>
-         <button class="remote-button" id="next-channel" aria-label="Next Channel">
+        <button class="remote-button" id="next-channel" aria-label="Next Channel">
             &#x25B2; <!-- Up Arrow -->
         </button>
         <button class="remote-button-guide" id="hide-guide" aria-label="Toggle Guide">
@@ -59,9 +59,6 @@
         <button class="remote-button" id="previous-channel" aria-label="Previous Channel">
             &#x25BC; <!-- Down Arrow -->
         </button>
-     
-    
-      
     </div>
 
     <!-- Toggle Remote Control Button -->
@@ -69,6 +66,10 @@
 
     <!-- TV Guide Panel -->
     <div class="tv-guide-panel" aria-label="TV Guide Channel Listings">
+        <!-- Time Bar -->
+        <div class="time-bar" aria-label="Current Time and Upcoming Blocks">
+            <!-- Time blocks will be populated here dynamically -->
+        </div>
         <div class="channel-list">
             <!-- Channels will be populated here dynamically -->
         </div>
