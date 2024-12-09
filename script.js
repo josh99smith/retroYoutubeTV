@@ -480,7 +480,7 @@ function showChannelNumberOverlay(channelNumber) {
 
     if (overlay) {
         // Set the channel number text
-        overlay.textContent = `Channel ${channelNumber}`;
+        overlay.textContent = `${channelNumber}`;
 
         // Make the overlay visible
         overlay.classList.add('visible');
