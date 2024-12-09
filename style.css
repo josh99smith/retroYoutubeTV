@@ -182,17 +182,16 @@ body {
 /* Show TV Guide Panel */
 .tv-guide-panel.visible {
     display: block;
+  overflow: hidden;
 }
 
 /* Channel List Styling */
 .channel-list {
-    padding: 10px 20px;
-    display: flex;
-    flex-direction: column;
-   
+    max-height: 70vh; /* Adjust as needed */
     overflow-y: auto; /* Enable vertical scrolling */
-    height: 100%;
-    scroll-behavior: smooth;
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #FFD700 #333; /* For Firefox */
+  overflow: hidden;
 }
 
 /* Individual Channel Entry */
@@ -551,11 +550,11 @@ body {
 
     /* TV Guide Panel Responsive */
     .tv-guide-panel {
-        max-height: 150px; /* Reduced max height for smaller screens */
+        max-height: 50%; /* Reduced max height for smaller screens */
     }
 
     .current-program {
-        max-width: 150px; /* Reduced max width for smaller screens */
+        max-width: 250px; /* Reduced max width for smaller screens */
     }
 
     /* Adjust Channel Number Box for Mobile */
@@ -659,4 +658,3 @@ body {
       
     }
 }
-
